@@ -3,9 +3,13 @@ import torch
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
 
+if len(sys.argv) != 3:
+    print("python vsr_real_esrgan_cuda.py [input_image_path] [output_image_path]")
+    sys.exit(0)
+
 model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
 model_path = './RealESRGAN_x4plus.pth'
-loadnet = torch.load(model_path, map_location='cpu')
+loadnet = torch.load(model_path, map_location='cpu', weights_only=True)
 model.load_state_dict(loadnet['params_ema'], strict=True)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -20,5 +24,4 @@ import cv2
 print("Input image: ", sys.argv[1])
 image = cv2.imread(sys.argv[1])
 output_image, _ = upsampler.enhance(image)
-#cv2.imwrite('_' + sys.argv[1], output_image)
-cv2.imwrite('./output.png', output_image)
+cv2.imwrite(sys.argv[2], output_image)

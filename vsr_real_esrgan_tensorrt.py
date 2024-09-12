@@ -1,4 +1,5 @@
 import sys
+import time
 import gc
 import tensorrt as trt 
 import pycuda.driver as cuda
@@ -30,19 +31,23 @@ for i in range(engine.num_io_tensors):
     if is_input:
         batch_size = shape[0]
 
-    size = np.dtype(trt.nptype(dtype)).itemsize
-    print("size: ", size)
-    for s in shape:
-        print("s: ", s)
-        size *= s
+    # Calculate the total buffer size to hold the input image: sizeof_float32 * batch_size * RGB_color_channels * image_height * image_width
+    size = np.dtype(trt.nptype(dtype)).itemsize # bytes of float32
+    print("\nReal_ESRGAN input tensor shape: ")
+    print("batch_size | color channels | image height | image width ")
+    for d in shape:
+        print(d, " | ", end=" ")
+        size *= d
+
+    print("\n")
 
     print("Tensor name: ", name)
     print("Is input? ", is_input)
     print("dtype: ", dtype)
     print("shape: ", shape)
     print("batch_size: ", batch_size)
-    print("Buffer size: ", size)
-    print("......................")
+    print("buffer size: ", size)
+    print("\n")
     
     buffer = cuda.mem_alloc(size)
     binding = {
@@ -78,13 +83,16 @@ context = engine.create_execution_context()
 # Copy input data to the device buffer
 cuda.memcpy_htod(inputs[0]['allocation'], input_image.ravel())
 
+inference_start_time_ms = int(time.time() * 1000)
+
 # Execute inference
 context.execute_v2(buffers)
 
+inference_end_time_ms = int(time.time() * 1000)
+print("Inference time taken: ", inference_end_time_ms - inference_start_time_ms, "ms")
+
 # Copy predictions (output data) back to host from the device
 host_output = np.zeros(3 * 512 * 512, outputs[0]['dtype'])
-print("host_output size: ", outputs[0]['size'])
-
 cuda.memcpy_dtoh(host_output, outputs[0]['allocation'])
 
 # Post-process and save the output image
@@ -94,6 +102,7 @@ output_image = np.transpose(output_image, (1, 2, 0))  # Convert to HWC format fo
 output_image = np.clip(output_image * 255.0, 0, 255).astype(np.uint8) # De-normalize and convert to uint8 precision
 
 cv2.imwrite(sys.argv[3], output_image)
+print("Output image: ", sys.argv[3])
 
 del host_output
 inputs[0]['allocation'].free()

@@ -3,7 +3,7 @@ import torch
 from basicsr.archs.rrdbnet_arch import RRDBNet
 from realesrgan import RealESRGANer
 
-if len(sys.argv) != 2:
+if len(sys.argv) != 3:
     # python vsr_real_esrgan_cuda.py real_esrgan.onnx
     print("python vsr_real_esrgan_cuda.py [tensorrt_engine_output_path]") 
     sys.exit(0)
@@ -18,6 +18,6 @@ model = model.to(device)
 
 # Export to ONNX
 # Input shape: (batch_size, number_of_channels_RGB, height, width)
-dummy_input = torch.randn(1, 3, 128, 128, dtype=torch.float32, device=device)
+dummy_input = torch.randn(int(sys.argv[1]), 3, 128, 128, dtype=torch.float32, device=device)
 #dummy_input = dummy_input.to(device)
-torch.onnx.export(model, dummy_input, sys.argv[1], export_params=True, opset_version=11)
+torch.onnx.export(model, dummy_input, sys.argv[2], export_params=True, opset_version=11)

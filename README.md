@@ -18,8 +18,10 @@ export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
 4. The inference application (*vsr_real_esrgan_tensorrt.py*) use tensorrt to run inference (i.e., scale-up images) that is why we include tensorrt in requirements.txt. Also, in step 4, we use **trtexec** to convert the ONNX file to TensorRT engine file which is an utility program included in the TensorRT TAR file. The two tensorrt versions (the one installed by **pip** and the one included in the TAR file) must match, otherwise you will see runtime errors. For my setup, I installed tensorrt version 10.1.0.27 in both requirements.txt and the TAR file.
 
-5. Run "*python real_esrgan_to_onnx.py [onnx_file_output_path]*" to convert the real_esrgan model to the intermediate ONNX format.
+5. Run "*python real_esrgan_to_onnx.py [batch_size] [onnx_file_output_path]*" to convert the real_esrgan model to the intermediate ONNX format. [batch_size] provides the batch size for tensorrt batched inference. If you only want to generate 1 image output at a time, set this to 1, otherwise set this to a value that will not exhaust your GPU memory.
 
-6. Run "*trtexec --onnx=real_esrgan.onnx --saveEngine=real_esrgan.engine*" to convert the ONNX file to TensorRT engine.
+6. Run "*trtexec --onnx=real_esrgan.onnx --saveEngine=real_esrgan.engine*" to convert the ONNX file to TensorRT engine. Every time you rebuild the ONNX file, you need to rebuild the engine file too.
 
-7. Run "*python3 vsr_real_esrgan_tensorrt.py ./real_esrgan.engine [path_to_input_image] [path_to_output_image]*" to upscale an input image.
+7. Run "*python3 vsr_real_esrgan_tensorrt.py ./real_esrgan.engine [path_to_input_image] [path_to_output_image]*" to upscale a single input image.
+
+   Run "*python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine [path_to_input_image_folder] [path_to_output_image_folder]*" to upscale multiple input images in a batch.

@@ -102,6 +102,11 @@ output_image = np.transpose(output_image, (1, 2, 0))  # Convert to HWC format fo
 output_image = np.clip(output_image * 255.0, 0, 255).astype(np.uint8) # De-normalize and convert to uint8 precision
 
 cv2.imwrite(sys.argv[3], output_image)
+cv2.imshow("output image", output_image)
+print("Press any key to close the image...")
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
 print("Output image: ", sys.argv[3])
 
 del host_output

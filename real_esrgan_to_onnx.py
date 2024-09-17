@@ -8,6 +8,7 @@ if len(sys.argv) != 3:
     print("python vsr_real_esrgan_cuda.py [tensorrt_engine_output_path]") 
     sys.exit(0)
 
+# x2 model: https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.1
 model = RRDBNet(num_in_ch=3, num_out_ch=3, num_feat=64, num_block=23, num_grow_ch=32, scale=4)
 model_path = './RealESRGAN_x4plus.pth'
 loadnet = torch.load(model_path, map_location='cpu', weights_only=True)

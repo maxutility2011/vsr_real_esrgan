@@ -49,6 +49,6 @@ to upscale a single input image.
 
    Run the following command
 ```   
-python vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine [path_to_input_image_folder] [path_to_output_image_folder]
+python vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine [path_to_input_image_folder] [path_to_output_image_folder] [batch_number]
 ```
-to upscale multiple input images in a batch. Batched processing could be a bit faster.
+to upscale multiple input images in a batch. Batched processing could be a bit faster. Batch number starts from 1.

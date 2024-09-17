@@ -1,7 +1,5 @@
-python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine ../samples/vertical/batch_1/ output/ 1
-python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine ../samples/vertical/batch_2/ output/ 2
-python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine ../samples/vertical/batch_3/ output/ 3
-python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine ../samples/vertical/batch_4/ output/ 4
-python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine ../samples/vertical/batch_5/ output/ 5
+echo "Upscaling video with super resolution"
+python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine 45 ../samples/vertical/batch_ output/
 
-ffmpeg -r 15 -s 360x640 -i output/image_%4d.png -vcodec libx264 output.mp4
+echo "FFmpeg generating output video"
+ffmpeg -hide_banner -loglevel error -r 15 -s 360x640 -i output/image_%4d.png -vcodec libx264 -y output.mp4

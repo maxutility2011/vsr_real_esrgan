@@ -72,7 +72,7 @@ assert len(buffers) > 0
 
 print("Input image: ", sys.argv[2])
 input_image = cv2.imread(sys.argv[2])
-input_image = cv2.resize(input_image, (128, 128)) # If the input image resolution is not 128 x 128, resize it to match the expected resolution.
+input_image = cv2.resize(input_image, (128, 128)) # If input image resolution is not 128 x 128, resize it to match the expected resolution.
 input_image = input_image.astype(np.float32) / 255.0 # Change data precision from uint8 to float32 for high-precision inference, and normalize the image array by dividing 255. Pixel data values in 8 bits images are between 0-255 and Real-ESRGAN model uses normalized image data for training.
 
 input_image = np.transpose(input_image, (2, 0, 1)) # Transpose to CHW format (as used by Real-ESRGAN)

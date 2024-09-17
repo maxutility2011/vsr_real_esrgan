@@ -43,12 +43,12 @@ to convert the ONNX file to TensorRT engine. Every time you rebuild the ONNX fil
 
 7. Run the following command
 ```
-python3 vsr_real_esrgan_tensorrt.py ./real_esrgan.engine [path_to_input_image] [path_to_output_image]
+python vsr_real_esrgan_tensorrt.py ./real_esrgan.engine [path_to_input_image] [path_to_output_image]
 ```
 to upscale a single input image.
 
    Run the following command
 ```   
-python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine [path_to_input_image_folder] [path_to_output_image_folder]
+python vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine [path_to_input_image_folder] [path_to_output_image_folder]
 ```
 to upscale multiple input images in a batch. Batched processing could be a bit faster.

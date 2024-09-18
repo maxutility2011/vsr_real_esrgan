@@ -35,11 +35,11 @@ def preprocess_batch(images, target_shape):
 
     return np.stack(batch, axis=0)  # Return a batch (N, C, H, W)
 
-parser = argparse.ArgumentParser(description='Set log level dynamically from command-line.')
+parser = argparse.ArgumentParser(description='Video super resolution inference.')
 parser.add_argument('--loglevel', type=str, default='INFO', help='Set the log level (e.g., DEBUG, INFO, WARNING, ERROR, CRITICAL)')
-parser.add_argument('--trt_engine', type=str, default='./real_esrgan.engine', help='Path to the vsr inference engine file')
-parser.add_argument('--input_folder', type=str, help='The top level input folder that contains all the batch subfolders')
-parser.add_argument('--output_folder', type=str, help='The output folder')
+parser.add_argument('--trt_engine', type=str, required=True, default='./real_esrgan.engine', help='Path to the vsr inference engine file')
+parser.add_argument('--input_folder', type=str, required=True, help='The top level input folder that contains all the batch subfolders')
+parser.add_argument('--output_folder', type=str, required=True, help='The output folder')
 
 args = parser.parse_args()
 

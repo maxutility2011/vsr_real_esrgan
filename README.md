@@ -31,24 +31,30 @@ export LD_LIBRARY_PATH=$CUDA_HOME/lib64:$LD_LIBRARY_PATH
 
 5. Run the following command
 ```
-python real_esrgan_to_onnx.py [batch_size] [onnx_file_output_path]
+python real_esrgan_to_onnx.py --output_file=./real_esrgan.onnx --batch_size=3 --input_height=360 --input_width=640
 ```
-to convert the pre-trained real_esrgan model to the intermediate ONNX format (the enclosed [RealESRGAN_x4plus.pth](RealESRGAN_x4plus.pth)). You can also download the latest model file from https://github.com/xinntao/Real-ESRGAN/releases. [batch_size] provides the batch size for tensorrt batched inference. If you only want to generate 1 image output at a time, set this to 1, otherwise set this to a value that will not exhaust your GPU memory.
+to convert the pre-trained real_esrgan model to the intermediate ONNX format (the enclosed [RealESRGAN_x4plus.pth](RealESRGAN_x4plus.pth)). You can also download the latest model file from https://github.com/xinntao/Real-ESRGAN/releases. [batch_size] provides the batch size for tensorrt batched inference. If you only want to generate 1 image output at a time, set this to 1, otherwise set this to a value that will not exhaust your GPU memory. You may need to run this command multiple times to experient and find out the highest value of *batch_size* that would allow the best VSR inference throughput.
 
-6. Run the following command
+6. Use ffmpeg to prepare the input video,
+   - Transcode the video to match the input tensor shape, e.g.,
+   ```
+   ffmpeg -i 10409938-uhd_2160_4096_25fps.mp4 -map v:0 -s:0 144x256 -c:v libx264 -preset slower -r 15 go_fishing_144x256.mp4
+   ```
+   Run the following command to break the transcoded video into a sequence of images, then copy the images to a number of batch folders.
+   - 
+   ```
+   ./prep.sh [input_video] [frame_rate] [batch_size]
+   ```
+   For example, "*./prep.sh ../samples/go_fishing_144x256.mp4 15 3*". *frame_rate* should match the frame rate in the ffmpeg command (e.g., "*-r 15*"), *batch_size* should match the value you found out in step 5.
+
+7. Run the following command
 ```
 trtexec --onnx=real_esrgan.onnx --saveEngine=real_esrgan.engine
 ``` 
 to convert the ONNX file to TensorRT engine. Every time you rebuild the ONNX file, you need to rebuild the engine file too.
 
-7. Run the following command
-```
-python vsr_real_esrgan_tensorrt.py ./real_esrgan.engine [path_to_input_image] [path_to_output_image]
-```
-to upscale a single input image.
-
-   Run the following command
+8. Run the following command
 ```   
-python vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine [path_to_input_image_folder] [path_to_output_image_folder] [batch_number]
+python vsr_real_esrgan_tensorrt.py --trt_engine=./real_esrgan.engine --input_folder=./input --output_folder=./output
 ```
 to upscale multiple input images in a batch. Batched processing could be a bit faster. Batch number starts from 1.

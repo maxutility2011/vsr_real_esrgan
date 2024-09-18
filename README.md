@@ -40,7 +40,9 @@ to convert the pre-trained real_esrgan model to the intermediate ONNX format (th
    ```
    ffmpeg -i 10409938-uhd_2160_4096_25fps.mp4 -map v:0 -s:0 144x256 -c:v libx264 -preset slower -r 15 go_fishing_144x256.mp4
    ```
+
    Run the following script to break the transcoded video into a sequence of images, then copy the images to a number of batch folders. The batched images will be fed to Real_ESRGAN TensorRT engine for VSR inference.
+   
    - 
    ```
    ./prep.sh [input_video] [frame_rate] [batch_size]

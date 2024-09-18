@@ -35,12 +35,12 @@ python real_esrgan_to_onnx.py --output_file=./real_esrgan.onnx --batch_size=3 --
 ```
 to convert the pre-trained real_esrgan model to the intermediate ONNX format (the enclosed [RealESRGAN_x4plus.pth](RealESRGAN_x4plus.pth)). You can also download the latest model file from https://github.com/xinntao/Real-ESRGAN/releases. [batch_size] provides the batch size for tensorrt batched inference. If you only want to generate 1 image output at a time, set this to 1, otherwise set this to a value that will not exhaust your GPU memory. You may need to run this command multiple times to experient and find out the highest value of *batch_size* that would allow the best VSR inference throughput.
 
-6. Use ffmpeg to prepare the input video,
+6. Use ffmpeg to prepare the input image set for VSR inference,
    - Transcode the video to match the input tensor shape, e.g.,
    ```
    ffmpeg -i 10409938-uhd_2160_4096_25fps.mp4 -map v:0 -s:0 144x256 -c:v libx264 -preset slower -r 15 go_fishing_144x256.mp4
    ```
-   Run the following command to break the transcoded video into a sequence of images, then copy the images to a number of batch folders.
+   Run the following script to break the transcoded video into a sequence of images, then copy the images to a number of batch folders. The batched images will be fed to Real_ESRGAN TensorRT engine for VSR inference.
    - 
    ```
    ./prep.sh [input_video] [frame_rate] [batch_size]
@@ -53,8 +53,17 @@ trtexec --onnx=real_esrgan.onnx --saveEngine=real_esrgan.engine
 ``` 
 to convert the ONNX file to TensorRT engine. Every time you rebuild the ONNX file, you need to rebuild the engine file too.
 
-8. Run the following command
+8. Run the following script to perform VSR inference (image upscaling and video transcoding) to upscale multiple input images in a batch. Batched inference could be a bit faster than single image inference.
+```
+./vsr.sh
+```
+Specically, the script runs the following steps,
+   - Load the Real_ESRGAN TensorRT engine file (as specified in *trt_engine*), and run inference to upscale    images under the *input_folder*, and save the upscaled images to the *output_folder*.
 ```   
 python vsr_real_esrgan_tensorrt.py --trt_engine=./real_esrgan.engine --input_folder=./input --output_folder=./output
 ```
-to upscale multiple input images in a batch. Batched processing could be a bit faster. Batch number starts from 1.
+   - Re-encode the upscaled images into a video output file.
+```
+ffmpeg -hide_banner -loglevel error -r 15 -s 576x1024 -i output/image_%4d.png -vcodec libx264 -preset faster -crf 25 -y output.mp4
+```
+In the above command, the frame rate must match the values in step 6. The output video resolution must equals the output image resolution, i.e., x4 upscaled based on the input resolution. For example, if the input resolution is 256x144, the output resolution should be 576x1024. For other ffmpeg options, feel free to choose any value of your preference. 

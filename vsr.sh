@@ -1,5 +1,8 @@
-echo "Upscaling video with super resolution"
-python3 vsr_real_esrgan_batched_tensorrt.py ./real_esrgan.engine 45 ../samples/vertical/batch_ output/
+echo "Removing previous output files..."
+rm -rf output/*
 
-echo "FFmpeg generating output video"
-ffmpeg -hide_banner -loglevel error -r 15 -s 360x640 -i output/image_%4d.png -vcodec libx264 -y output.mp4
+echo "Upscaling video with super resolution..."
+python3 vsr_real_esrgan_batched_tensorrt.py --loglevel=ERROR --trt_engine=./real_esrgan.engine --input_folder=../samples/shuping/ --output_folder=output/
+
+echo "Generating output video..."
+ffmpeg -hide_banner -loglevel error -r 15 -s 720x1280 -i output/image_%4d.png -vcodec libx264 -preset fast -crf 25 -y output.mp4

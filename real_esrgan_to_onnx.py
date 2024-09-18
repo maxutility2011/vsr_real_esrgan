@@ -21,6 +21,6 @@ model = model.to(device)
 # Export to ONNX
 # Input shape: (batch_size, number_of_channels_RGB, height, width)
 # sys.argv[1] gives the batch size
-dummy_input = torch.randn(int(sys.argv[1]), 3, 160, 90, dtype=torch.float16, device=device)
+dummy_input = torch.randn(int(sys.argv[1]), 3, 320, 180, dtype=torch.float16, device=device)
 #dummy_input = dummy_input.to(device)
 torch.onnx.export(model, dummy_input, sys.argv[2], export_params=True, opset_version=14)

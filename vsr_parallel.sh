@@ -1,0 +1,3 @@
+python3 vsr_real_esrgan_batched_tensorrt.py --loglevel=DEBUG --trt_engine=./real_esrgan.engine --input_folder=./in1 --output_folder=out1/ &
+python3 vsr_real_esrgan_batched_tensorrt.py --loglevel=DEBUG --trt_engine=./real_esrgan.engine --input_folder=./in2 --output_folder=out2/ &
+python3 vsr_real_esrgan_batched_tensorrt.py --loglevel=DEBUG --trt_engine=./real_esrgan.engine --input_folder=./in3 --output_folder=out3/ &

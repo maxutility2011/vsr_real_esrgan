@@ -10,7 +10,7 @@ import cv2
 import logging
 import argparse
 
-def read_images_from_folder(folder_path, batch_size):
+def read_images_from_folder(folder_path):
     images = []
 
     for filename in os.listdir(folder_path):
@@ -124,23 +124,18 @@ logger.debug("Input height: %d, Input width: %d", input_height, input_width)
  
 context = engine.create_execution_context()
 
+input_images = read_images_from_folder(args.input_folder)
+if len(input_images) == 0:
+    logger.error("Failed to read images from %s", dirpath)
+    exit(0)
+
+processed_images = preprocess_batch(input_images, (input_width, input_height)) # reorder height and width of target shape to match opencv2.resize()
+batch_idx = 1
+batch_start = 0
 host_output_allocated = False
-batch_idx = 0
-for dirpath, dirnames, filenames in os.walk(args.input_folder, onerror=lambda e: print(e)):
-    if dirpath == args.input_folder:
-        continue
-
-    input_images = read_images_from_folder(dirpath, batch_size)
-    if len(input_images) == 0:
-        logger.error("Failed to read images from %s", dirpath)
-        break
-
-    if len(input_images) > batch_size:
-        logging.error("Batch folder %s contains %d files, more than %d (batch size) images", dirpath, len(input_images), batch_size)
-        break
-
-    batch_idx += 1
-    batch = preprocess_batch(input_images, (input_width, input_height)) # reorder height and width of target shape to match opencv2.resize()
+while batch_start < len(processed_images):
+    batch_start_time_ms = int(time.time() * 1000)
+    batch = processed_images[batch_start : batch_start + batch_size]
 
     # Copy input data to the device buffer
     logger.debug("Overall input shape: (%d %d %d %d)", batch.shape[0], batch.shape[1], batch.shape[2], batch.shape[3])
@@ -160,17 +155,32 @@ for dirpath, dirnames, filenames in os.walk(args.input_folder, onerror=lambda e:
     cuda.memcpy_dtoh(host_output, outputs[0]['allocation'])
 
     # Post-process and save the output image
+    post_process_start_time_ms = int(time.time() * 1000)
     output_images = host_output.reshape((batch_size, 3, input_height * upscale_factor, input_width * upscale_factor))
     output_images = np.transpose(output_images, (0, 2, 3, 1))  # Convert to HWC format for OpenCV image saving
-    output_images = np.clip(output_images * 255.0, 0, 255).astype(np.uint8) # De-normalize and convert to uint8 precision
+    #output_images = np.clip(output_images * 255.0, 0, 255).astype(np.uint8) # De-normalize and convert to uint8 precision
+    # Bo Zhang: No np.clip(...) as it takes ~30 ms per image without boosting quality
+    #output_images = (output_images * 255.0).astype(np.uint8) # De-normalize and convert to uint8 precision
+    output_images = output_images * 255.0
+    post_process_end_time_ms = int(time.time() * 1000)
+    logger.debug("post_process time taken: %d %s", post_process_end_time_ms - post_process_start_time_ms, "ms")
 
     output_folder = args.output_folder
     os.makedirs(output_folder, exist_ok=True)
 
+    image_save_start_time_ms = int(time.time() * 1000)
+    # Image saving takes about 100ms per batch of size 3 (~30ms per image). This may not be needed if we can perform video transcoding on raw image data directly.
     for img_idx, img in enumerate(output_images):
-        image_number = img_idx - 1 + batch_idx * batch_size
-        url = output_folder + "/image_" + ("%04d" % image_number) + ".png"
+        image_number = batch_start + img_idx - 1
+        url = output_folder + "/image_" + ("%04d" % image_number) + ".bmp"
         cv2.imwrite(url, img)
+    image_save_end_time_ms = int(time.time() * 1000)
+    logger.debug("image_save time taken: %d %s", image_save_end_time_ms - image_save_start_time_ms, "ms")
+
+    batch_start += batch_size
+    batch_idx += 1
+    batch_end_time_ms = int(time.time() * 1000)
+    logger.debug("Batch %d total processing time: %d %s ", batch_idx, batch_end_time_ms - batch_start_time_ms, "ms")
 
 # Deallocate host memory
 if host_output_allocated == True:

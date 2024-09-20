@@ -42,12 +42,12 @@ to convert the pre-trained real_esrgan model to the intermediate ONNX format (th
    ```
 
    Run the following script to break the transcoded video into a sequence of images, then copy the images to a number of batch folders. The batched images will be fed to Real_ESRGAN TensorRT engine for VSR inference.
-   
+
    - 
    ```
-   ./prep.sh [input_video] [frame_rate] [batch_size]
+   ./prep.sh [input_video] [frame_rate]
    ```
-   For example, "*./prep.sh ../samples/go_fishing_144x256.mp4 15 3*". *frame_rate* should match the frame rate in the ffmpeg command (e.g., "*-r 15*"), *batch_size* should match the value you found out in step 5.
+   For example, "*./prep.sh ../samples/go_fishing_144x256.mp4 15*". *frame_rate* should match the frame rate in the ffmpeg command (e.g., "*-r 15*"). The above command outputs a folder *images/* which contains *video_duration_sec x frame_rate_fps* number of images. In step 8, *vsr_real_esrgan_tensorrt.py* will read the input images from *images/* and run VSR inference on the images.
 
 7. Run the following command
 ```
@@ -62,7 +62,7 @@ to convert the ONNX file to TensorRT engine. Every time you rebuild the ONNX fil
 Specically, the script runs the following steps,
    - Load the Real_ESRGAN TensorRT engine file (as specified in *trt_engine*), and run inference to upscale    images under the *input_folder*, and save the upscaled images to the *output_folder*.
 ```   
-python vsr_real_esrgan_tensorrt.py --trt_engine=./real_esrgan.engine --input_folder=./input --output_folder=./output
+python vsr_real_esrgan_tensorrt.py --trt_engine=./real_esrgan.engine --input_folder=./images --output_folder=./output
 ```
    - Re-encode the upscaled images into a video output file.
 ```

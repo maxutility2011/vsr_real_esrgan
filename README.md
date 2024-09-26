@@ -51,9 +51,9 @@ to convert the pre-trained real_esrgan model to the intermediate ONNX format (th
 
 7. Run the following command
 ```
-trtexec --onnx=real_esrgan.onnx --saveEngine=real_esrgan.engine
+trtexec --onnx=real_esrgan.onnx --saveEngine=real_esrgan.engine --fp16
 ``` 
-to convert the ONNX file to TensorRT engine. Every time you rebuild the ONNX file, you need to rebuild the engine file too.
+to convert the ONNX file to TensorRT engine. Every time you rebuild the ONNX file, you need to rebuild the engine file too. "--fp16" specifies the use of floating point 16 bits precision which can save the inference time significantly, with acceptably lower VSR quality.
 
 8. Run the following script to perform VSR inference (image upscaling and video transcoding) to upscale multiple input images in a batch. Batched inference could be a bit faster than single image inference.
 ```

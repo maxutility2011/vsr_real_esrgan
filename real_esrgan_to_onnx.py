@@ -26,8 +26,20 @@ model = model.half() # use float16
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = model.to(device)
 
+#device = torch.device('cpu')
+#model = model.cpu()
+#model.eval()
+
+'''
+print("mem:", torch.cuda.memory_allocated(), "max. mem:", torch.cuda.max_memory_allocated())
+print("mem:", torch.cuda.memory_reserved(), "max. mem:", torch.cuda.max_memory_reserved())
+torch.cuda.empty_cache()
+torch.cuda.memory_allocated()
+print(torch.cuda.memory_summary())
+'''
+
 # Export to ONNX
 # Input shape: (batch_size, number_of_channels_RGB, height, width)
 # sys.argv[1] gives the batch size
-dummy_input = torch.randn(args.batch_size, 3, args.input_height, args.input_width, dtype=torch.float16, device=device)
-torch.onnx.export(model, dummy_input, args.output_file, export_params=True, opset_version=14)
+dummy_input = torch.randn((args.batch_size, 3, args.input_height, args.input_width), dtype=torch.float16, device=device)
+torch.onnx.export(model, dummy_input, args.output_file, export_params=True, opset_version=17)
